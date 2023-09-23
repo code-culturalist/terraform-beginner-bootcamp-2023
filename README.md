@@ -4,7 +4,7 @@
 
 
 This project  is going to utilize semantic versioning for its tagging.
-[semver.org](https://semver.org/)
+[semver.org](https://semver.org/)    :mage:
 
 
 The general format:
