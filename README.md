@@ -124,7 +124,7 @@ We can filter specific env vars using grep eg. `env | grep AWS_`
 
 #### Setting and unsetting Env vars
 
-In the termnal we can set using `export HELLO="world"`
+In the terminal we can set using `export HELLO="world"`
 
 We can set an env var temporaly when just running a command
 
@@ -149,25 +149,25 @@ echo $HELLO
 We can print an env var using echo eg. `echo $HELLO`
 
 
-#### SCoping of Env VARs
+#### Scoping of Env VARs
 
-When you open up new bash terminal in VWCode it woll not be aware of env vars that you have set in another window. 
+When you open up new bash terminal in VSCode it will not be aware of env vars that you have set in another window. 
 
 If you want to Env Vars to persist across all future terminals that are open you need to set env vars in your bash profile. eg. `.bash_profile`
 
 
 #### Persisting Env Vars in Gitpod
 
-We can persiste en vars into gitpod by soting then in Gitpod Secrets Storage.
+We can persist env vars into gitpod by storing them in Gitpod Secrets Storage.
 
 
 ```
 gp env HELLO='world'
 ```
 
-All future workspace launched will se the env vars for all bash terminal opened in those workspaces.
+All future workspace launched will set the env vars for all bash terminal opened in those workspaces.
 
-You can also se env vars in the `.gitpod.yml` but this can only contain non-sensitive env vars.
+You can also set env vars in the `.gitpod.yml` but this can only contain non-sensitive env vars.
 
 
 
