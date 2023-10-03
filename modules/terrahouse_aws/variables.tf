@@ -17,3 +17,24 @@ variable "bucket_name" {
     error_message = "Invalid S3 bucket name. Bucket names must be between 3 and 63 characters long and can only contain lowercase letters, numbers, hyphens, and periods."
   }
 }
+
+
+variable "index_html_filepath" {
+  description = "Path to the index HTML file"
+  type        = string
+
+  validation {
+    condition     = can(fileexists(var.index_html_filepath))
+    error_message = "The specified index HTML file path does not exist."
+  }
+}
+
+variable "error_html_filepath" {
+  description = "Path to the error HTML file"
+  type        = string
+
+  validation {
+    condition     = can(fileexists(var.error_html_filepath))
+    error_message = "The specified error HTML file path does not exist."
+  }
+}
