@@ -1,6 +1,30 @@
 # Terraform Beginner Bootcamp 2023 - Week 1
 
 
+## Fixing Tags
+
+[How to delete local and remote tags on Git](https://devconnected.com/how-to-delete-local-and-remote-tags-on-git/)
+
+
+Locally delete a tag
+```sh
+git tag -d <tag_name>
+```
+
+Remotelly delete a tag
+```sh
+git push --delete origin tagname
+```
+(we need to do both)
+
+Checkout the commit that you want to retag. Grab the SHA from your GitHub history.
+
+```sh
+git checkout <SHA>
+git tag <M.M.P>
+git push --tags
+git checkout main
+```
 
 ## Root Module Structure
 
