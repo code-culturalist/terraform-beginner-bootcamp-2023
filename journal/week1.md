@@ -273,3 +273,23 @@ resource "aws_instance" "web" {
 }
 
 ```
+https://developer.hashicorp.com/terraform/language/resources/provisioners/remote-exec
+
+
+## for_each expressions
+
+[for_each meta-argument](https://developer.hashicorp.com/terraform/language/meta-arguments/for_each)
+
+for_each allows us to enumerate over complex data types
+
+```tf
+# my_buckets.tf
+module "bucket" {
+  for_each = toset(["assets", "media"])
+  source   = "./publish_bucket"
+  name     = "${each.key}_bucket"
+}
+```
+
+This is mostly useful when ou are creating multiples of a cloud resource and you want to reduce the amount of repetitive terraform code.
+
