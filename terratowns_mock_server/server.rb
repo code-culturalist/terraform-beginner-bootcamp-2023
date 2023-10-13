@@ -32,12 +32,13 @@ class Home
   attr_accessor :town, :name, :description, :domain_name, :content_version
 
   validates :town, presence: true, inclusion: { in: [
+    'melomaniac-mansion',
     'cooker-cove',
-    'gamers-grotto',
-    'the-nomad-pad',
     'video-valley',
-    'melomaniac-mansion'
+    'the-nomad-pad',
+    'gamers-grotto'
   ] }
+
   # visible to all users
   validates :name, presence: true
   # visible to all users
@@ -183,7 +184,7 @@ class TerraTownsMockServer < Sinatra::Base
 
     # checks for house limit
 
-    content_type :
+    content_type :json
     # does the uuid for the home match the one in our mock database
     if params[:uuid] == $home[:uuid]
       return $home.to_json
