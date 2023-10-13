@@ -3,22 +3,56 @@ require 'json'
 require 'pry'
 require 'active_model'
 
+# we will mock having a state or database for this development server
+# by setting a global variable. You would never use a global variable in production server.
 $home = {}
 
+# this is a Ruby class that includes validations from ActiveRecord.
+# this will represent our Home resource as a Ruby object.
 class Home
+  # ActiveModel is part of Ruby on Rails.
+  # it is used as an ORM. It has a module within
+  # ActiveModel that provides validations.
+  # The production Terratowns server is Rails ans uses
+  # very similar and in most cases identical validation
+  # https://guides.rubyonrails.org/active_model_basics.html
+  # https://guides.rubyonrails.org/active_record_validations.html
   include ActiveModel::Validations
+
+  
+  # create some virtual attributes to store on this object
+  # this will set a getter and setter
+  # eg.
+  # home = new Home()
+  # home.town = 'hello' # setter
+  # home.town() # getter
+
+  # gamer-groto
+  # cooker-cove
   attr_accessor :town, :name, :description, :domain_name, :content_version
 
-  validates :town, presence: true
+  validates :town, presence: true, inclusion: { in: [
+    'cooker-cove',
+    'gamers-grotto',
+    'the-nomad-pad',
+    'video-valley',
+    'melomaniac-mansion'
+  ] }
+  # visible to all users
   validates :name, presence: true
+  # visible to all users
   validates :description, presence: true
+  # we want to lock this down to only be from cloudfront
   validates :domain_name, 
     format: { with: /\.cloudfront\.net\z/, message: "domain must be from .cloudfront.net" }
     # uniqueness: true, 
-
+  # content version has to be an integer
+  # we will make sure it an incremental version in the controller
   validates :content_version, numericality: { only_integer: true }
 end
 
+# we are extending a class from Simatra::Base to 
+# turn this generic class to utilize the sinatra web-framework
 class TerraTownsMockServer < Sinatra::Base
 
   def error code, message
@@ -39,29 +73,39 @@ class TerraTownsMockServer < Sinatra::Base
     end
   end
 
+  # return a hardcoded access token
   def x_access_code
-    '9b49b3fb-b8e9-483c-b703-97ba88eef8e0'
+    return '9b49b3fb-b8e9-483c-b703-97ba88eef8e0'
   end
 
+  # return an user uuid
   def x_user_uuid
-    'e328f4ab-b99f-421c-84c9-4ccea042c7d1'
+    return 'e328f4ab-b99f-421c-84c9-4ccea042c7d1'
   end
 
+  # https://swagger.io/docs/specification/authentication/bearer-authentication/
   def find_user_by_bearer_token
     auth_header = request.env["HTTP_AUTHORIZATION"]
+    # check if the authorization header exists?
     if auth_header.nil? || !auth_header.start_with?("Bearer ")
       error 401, "a1000 Failed to authenicate, bearer token invalid and/or teacherseat_user_uuid invalid"
     end
-
+    
+    # Does the token match the one in our database?
+    # if we cant find it then return an error of if it doesnt match
+    # code = access_code = token
     code = auth_header.split("Bearer ")[1]
     if code != x_access_code
       error 401, "a1001 Failed to authenicate, bearer token invalid and/or teacherseat_user_uuid invalid"
     end
 
+    # was there a user_uuid in the body payload json?
     if params['user_uuid'].nil?
       error 401, "a1002 Failed to authenicate, bearer token invalid and/or teacherseat_user_uuid invalid"
     end
 
+    # the code and the user_uuid should be matching for user
+    # in rails: User.find_by_access_code ant the user_uuid should be matching for user
     unless code == x_access_code && params['user_uuid'] == x_user_uuid
       error 401, "a1003 Failed to authenicate, bearer token invalid and/or teacherseat_user_uuid invalid"
     end
@@ -71,27 +115,34 @@ class TerraTownsMockServer < Sinatra::Base
   post '/api/u/:user_uuid/homes' do
     ensure_correct_headings
     find_user_by_bearer_token
+    # pust will print to the terminal similar to a print or console log
     puts "# create - POST /api/homes"
 
+    # a begin/resource is a try/catch , if an error occurs , result it
     begin
+      # Sinatra does not automatically parse json bodys as params
+      # like Railds so we need to manuall parse it.
       payload = JSON.parse(request.body.read)
     rescue JSON::ParserError
       halt 422, "Malformed JSON"
     end
 
-    # Validate payload data
+    # assign the payload to variables 
+    # to make easier to work with the code
     name = payload["name"]
     description = payload["description"]
     domain_name = payload["domain_name"]
     content_version = payload["content_version"]
     town = payload["town"]
 
+    # printing the variables out to console to make it easier to see or debug what we have inputed into this endpoint
     puts "name #{name}"
     puts "description #{description}"
     puts "domain_name #{domain_name}"
     puts "content_version #{content_version}"
     puts "town #{town}"
 
+    # Create a new Home model and set the attibutes 
     home = Home.new
     home.town = town
     home.name = name
@@ -99,12 +150,18 @@ class TerraTownsMockServer < Sinatra::Base
     home.domain_name = domain_name
     home.content_version = content_version
     
+    # ensure our validation checks pass otherwise 
+    # return the errors
     unless home.valid?
+      # return the errors message back json
       error 422, home.errors.messages.to_json
     end
 
+    # generating a uuid at random
     uuid = SecureRandom.uuid
     puts "uuid #{uuid}"
+    # will mock our data to our mock database
+    # which just a global variable
     $home = {
       uuid: uuid,
       name: name,
@@ -114,6 +171,7 @@ class TerraTownsMockServer < Sinatra::Base
       content_version: content_version
     }
 
+    # will just return uuid
     return { uuid: uuid }.to_json
   end
 
@@ -125,7 +183,8 @@ class TerraTownsMockServer < Sinatra::Base
 
     # checks for house limit
 
-    content_type :json
+    content_type :
+    # does the uuid for the home match the one in our mock database
     if params[:uuid] == $home[:uuid]
       return $home.to_json
     else
@@ -134,6 +193,7 @@ class TerraTownsMockServer < Sinatra::Base
   end
 
   # UPDATE
+  # very similar to create action
   put '/api/u/:user_uuid/homes/:uuid' do
     ensure_correct_headings
     find_user_by_bearer_token
@@ -180,9 +240,11 @@ class TerraTownsMockServer < Sinatra::Base
       error 404, "failed to find home with provided uuid and bearer token"
     end
 
+    # delete from our mock database
     $home = {}
     { message: "House deleted successfully" }.to_json
   end
 end
 
+# this is waht will run the server
 TerraTownsMockServer.run!
