@@ -5,13 +5,13 @@ terraform {
       version = "1.0.0"
     }
   }
-  # cloud {
-  #   organization = "code-culturalist"
+  cloud {
+    organization = "code-culturalist"
 
-  #   workspaces {
-  #     name = "terra-house-1"
-  #   }
-  # }
+    workspaces {
+      name = "terra-house-1"
+    }
+  }
 }
 
 provider "terratowns" {
@@ -20,13 +20,12 @@ provider "terratowns" {
   token = var.terratowns_access_token
 }
 
-module "terrahouse_aws" {
-  source = "./modules/terrahouse_aws"
+module "home_musique_hosting" {
+  source = "./modules/terrahome_aws"
   user_uuid = var.teacherseat_user_uuid
-  index_html_filepath = var.index_html_filepath
-  error_html_filepath = var.error_html_filepath
-  content_version = var.content_version
-  assets_path = var.assets_path
+  public_path = var.musique.public_path
+  content_version = var.musique.content_version
+  
 }
 
 resource "terratowns_home" "home" {
@@ -36,8 +35,28 @@ Dive into the world of infrastructure as code with the pulsating beats of electr
 The "Terraform TechGroove" playlist is carefully curated to enhance your coding experience, 
 whether you're building, provisioning, or managing cloud resources.
 DESCRIPTION
-  domain_name = module.terrahouse_aws.cloudfront_url
+  domain_name = module.home_musique_hosting.domain_name
   #domain_name = "*.cloudfront.net"
   town = "missingo"
-  content_version = 1
+  content_version = var.musique.content_version
+}
+
+module "home_bach_hosting" {
+  source = "./modules/terrahome_aws"
+  user_uuid = var.teacherseat_user_uuid
+  public_path = var.bach.public_path
+  content_version = var.bach.content_version
+  
+}
+
+resource "terratowns_home" "home_bach" {
+  name = "Bach's Masterpiece Recommendation"
+  description = <<DESCRIPTION
+If you're looking to experience one of Johann Sebastian Bach's most celebrated works, 
+you can't go wrong with the Brandenburg Concertos
+DESCRIPTION
+  domain_name = module.home_bach_hosting.domain_name
+  #domain_name = "*.cloudfront.net"
+  town = "missingo"
+  content_version = var.bach.content_version
 }
